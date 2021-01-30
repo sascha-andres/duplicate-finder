@@ -18,6 +18,9 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"livingit.de/code/dupfinder/reporter"
+	"livingit.de/code/dupfinder/scanner"
+	"github.com/sirupsen/logrus"
 	"os"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -33,6 +36,26 @@ var rootCmd = &cobra.Command{
 	Long: `scan the current directory and subdirectory for duplicate files.
 
 Method used: calculate hash for each file and compare to existing files`,
+	Run: func(cmd *cobra.Command, args []string) {
+		rootLogger := logrus.WithField("package", "livingit.de/code/dupfinder")
+		worker, err := scanner.NewScanner(".", rootLogger)
+		if err != nil {
+			rootLogger.Fatalf("error creating scanner: %s", err)
+		}
+		err = worker.Run()
+		if err != nil {
+			rootLogger.Fatalf("error scanning files: %s", err)
+		}
+
+		report, err := reporter.NewConsoleReporter()
+		if err != nil {
+			rootLogger.Fatalf("error creating reporter: %s", err)
+		}
+		err = worker.Report(report)
+		if err != nil {
+			rootLogger.Fatalf("error writing report: %s", err)
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
