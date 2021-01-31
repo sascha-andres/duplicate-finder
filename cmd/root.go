@@ -36,22 +36,31 @@ var rootCmd = &cobra.Command{
 
 Method used: calculate hash for each file and compare to existing files`,
 	Run: func(cmd *cobra.Command, args []string) {
-		worker, err := scanner.NewScanner(".", createRootLogger())
+		logger := createRootLogger()
+		worker, err := scanner.NewScanner(".", logger)
 		if err != nil {
-			createRootLogger().Fatalf("error creating scanner: %s", err)
+			logger.Fatalf("error creating scanner: %s", err)
 		}
 		err = worker.Run()
 		if err != nil {
-			createRootLogger().Fatalf("error scanning files: %s", err)
+			logger.Fatalf("error scanning files: %s", err)
 		}
 
 		report, err := reporter.GetReporter(viper.GetString("reporter.type"))
 		if err != nil {
-			createRootLogger().Fatalf("error creating reporter: %s", err)
+			logger.Fatalf("error creating reporter: %s", err)
+		}
+		err = report.Setup()
+		if err != nil {
+			logger.Errorf("error setting up the reporter: %s", err)
 		}
 		err = worker.Report(report)
 		if err != nil {
-			createRootLogger().Fatalf("error writing report: %s", err)
+			logger.Fatalf("error writing report: %s", err)
+		}
+		err = report.Finish()
+		if err != nil {
+			logger.Errorf("error finalizing the report: %s", err)
 		}
 	},
 }
