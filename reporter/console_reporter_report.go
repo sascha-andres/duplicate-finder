@@ -9,6 +9,7 @@ func (reporter *ConsoleReporter) Report(files []string) {
 		return
 	}
 
+	fmt.Println()
 	fmt.Println("Potentially duplicated files:")
 	for _, file := range files {
 		fmt.Println(fmt.Sprintf("  %s", file))
