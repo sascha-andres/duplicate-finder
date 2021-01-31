@@ -10,7 +10,7 @@ import (
 )
 
 // hashFile hashes a file and saves it to the map
-func (scanner *Scanner) hashFile(info os.FileInfo, path string) error {
+func (scanner *Scanner) hashFile(path string) error {
 	logger := scanner.logger.WithField("method", "hashFile")
 	f, err := os.Open(path)
 	if err != nil {
@@ -28,13 +28,7 @@ func (scanner *Scanner) hashFile(info os.FileInfo, path string) error {
 	}
 	fileHash := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 
-	if val, ok := scanner.potentialDuplicates[fileHash]; ok {
-		val = append(val, path)
-		scanner.potentialDuplicates[fileHash] = val
-	} else {
-		val = make([]string, 1)
-		val[0] = path
-		scanner.potentialDuplicates[fileHash] = val
-	}
+	scanner.saveHash(path, fileHash)
 	return nil
 }
+
