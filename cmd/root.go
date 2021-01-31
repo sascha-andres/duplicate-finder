@@ -45,7 +45,7 @@ Method used: calculate hash for each file and compare to existing files`,
 			createRootLogger().Fatalf("error scanning files: %s", err)
 		}
 
-		report, err := reporter.GetReporter("console")
+		report, err := reporter.GetReporter(viper.GetString("reporter.type"))
 		if err != nil {
 			createRootLogger().Fatalf("error creating reporter: %s", err)
 		}
@@ -85,7 +85,9 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.dupfinder.yaml)")
 
 	rootCmd.Flags().BoolP("verbose", "v", false, "turn on verbose logging")
+	rootCmd.Flags().StringP("reporter", "r", "console", "select reporter")
 	_ = viper.BindPFlag("logging.verbose", rootCmd.Flags().Lookup("verbose"))
+	_ = viper.BindPFlag("reporter.type", rootCmd.Flags().Lookup("reporter"))
 }
 
 // initConfig reads in config file and ENV variables if set.
