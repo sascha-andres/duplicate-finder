@@ -1,6 +1,5 @@
 package reporter
 
 type (
-	ConsoleReporter struct {}
+	ConsoleReporter struct{}
 )
-
