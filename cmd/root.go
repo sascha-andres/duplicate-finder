@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/leaanthony/spinner"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"livingit.de/code/dupfinder/reporter"
@@ -41,7 +42,7 @@ Method used: calculate hash for each file and compare to existing files`,
 		if err != nil {
 			logger.Fatalf("error creating scanner: %s", err)
 		}
-		err = worker.Run()
+		err = runScanner(worker, viper.GetBool("logging.verbose"))
 		if err != nil {
 			logger.Fatalf("error scanning files: %s", err)
 		}
@@ -63,6 +64,15 @@ Method used: calculate hash for each file and compare to existing files`,
 			logger.Errorf("error finalizing the report: %s", err)
 		}
 	},
+}
+
+func runScanner(worker *scanner.Scanner, verbose bool) error {
+	if !verbose {
+		myspinner := spinner.New("Scanning directory")
+		myspinner.Start()
+		defer myspinner.Success("done")
+	}
+	return worker.Run()
 }
 
 // createRootLogger creates a logger with options
