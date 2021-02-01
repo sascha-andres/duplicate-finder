@@ -23,7 +23,7 @@ func (reporter *GroupedConsoleReporter) Finish() error {
 		fmt.Println(fmt.Sprintf("Directory %s has files in common with:", outerDir))
 		for innerDirectory, countOfFiles := range commonFilesDirectory {
 			fileInfos, _ := ioutil.ReadDir(innerDirectory)
-			fmt.Println(fmt.Sprintf("  - %s with %d file(s) with %d file(s) in the directory", innerDirectory, countOfFiles, len(fileInfos)))
+			fmt.Println(fmt.Sprintf("  - %s with %d file(s) [%d file(s) in the directory]", innerDirectory, countOfFiles, len(fileInfos)))
 		}
 	}
 	return nil
