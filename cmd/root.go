@@ -17,14 +17,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/leaanthony/spinner"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"livingit.de/code/dupfinder/reporter"
-	"livingit.de/code/dupfinder/scanner"
 	"os"
 
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
@@ -38,52 +33,9 @@ var rootCmd = &cobra.Command{
 Method used: calculate hash for each file and compare to existing files`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger := createRootLogger()
-		worker, err := scanner.NewScanner(".", logger)
-		if err != nil {
-			logger.Fatalf("error creating scanner: %s", err)
-		}
-		err = runScanner(worker, viper.GetBool("logging.verbose"))
-		if err != nil {
-			logger.Fatalf("error scanning files: %s", err)
-		}
-
-		report, err := reporter.GetReporter(viper.GetString("reporter.type"))
-		if err != nil {
-			logger.Fatalf("error creating reporter: %s", err)
-		}
-		err = report.Setup()
-		if err != nil {
-			logger.Errorf("error setting up the reporter: %s", err)
-		}
-		err = worker.Report(report)
-		if err != nil {
-			logger.Fatalf("error writing report: %s", err)
-		}
-		err = report.Finish()
-		if err != nil {
-			logger.Errorf("error finalizing the report: %s", err)
-		}
+		worker := collectData(logger)
+		generateReport(logger, worker)
 	},
-}
-
-func runScanner(worker *scanner.Scanner, verbose bool) error {
-	if !verbose {
-		myspinner := spinner.New("Scanning directory")
-		myspinner.Start()
-		defer myspinner.Success("done")
-	}
-	return worker.Run()
-}
-
-// createRootLogger creates a logger with options
-func createRootLogger() *logrus.Entry {
-	rootLogger := logrus.WithField("package", "livingit.de/code/dupfinder")
-	if viper.GetBool("logging.verbose") {
-		rootLogger.Logger.SetLevel(logrus.DebugLevel)
-	} else {
-		rootLogger.Logger.SetLevel(logrus.WarnLevel)
-	}
-	return rootLogger
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -107,30 +59,4 @@ func init() {
 	rootCmd.Flags().StringP("reporter", "r", "console", "select reporter")
 	_ = viper.BindPFlag("logging.verbose", rootCmd.Flags().Lookup("verbose"))
 	_ = viper.BindPFlag("reporter.type", rootCmd.Flags().Lookup("reporter"))
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		// Search config in home directory with name ".dupfinder" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".dupfinder")
-	}
-
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }
